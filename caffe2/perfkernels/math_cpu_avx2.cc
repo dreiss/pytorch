@@ -23,6 +23,8 @@ void quantize_and_compress__avx2(
     uint64_t bitwidth,
     bool random,
     const float* random_buffer) {
+  abort();
+#if 0
   __m256i shuffle_mask_v = _mm256_set_epi8(
       0xff,
       0xff,
@@ -163,6 +165,7 @@ void quantize_and_compress__avx2(
       bit_start += bitwidth;
     }
   } // !random
+#endif
 }
 
 void decompress_and_dequantize__avx2(
