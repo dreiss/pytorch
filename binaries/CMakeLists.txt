@@ -62,5 +62,9 @@ if (USE_OBSERVERS)
   caffe2_binary_target(caffe2_benchmark "caffe2_benchmark.cc" "benchmark_helper.cc")
 endif()
 
+if (USE_NNAPI AND ANDROID)
+  caffe2_binary_target("nnapi_runner.cc")
+endif()
+
 # ---[ tutorials
 caffe2_binary_target("tutorial_blob.cc")
