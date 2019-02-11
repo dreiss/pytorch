@@ -19,12 +19,8 @@ class Int8TransposeOp final : public TransposeOp<CPUContext> {
   bool RunOnDevice() override {
     auto& X = Inputs()[0]->Get<Int8TensorCPU>();
     auto* Y = Outputs()[0]->GetMutable<Int8TensorCPU>();
-    int32_t Y_offset = this->template GetSingleArgument<int>("Y_zero_point", 0);
-    auto Y_scale = this->template GetSingleArgument<float>("Y_scale", 1);
-    CHECK_EQ(Y_offset, X.zero_point);
-    CHECK_EQ(Y_scale, X.scale);
-    Y->scale = Y_scale;
-    Y->zero_point = Y_offset;
+    Y->scale = X.scale;
+    Y->zero_point = X.zero_point;
     TransposeImpl<uint8_t>(X.t, &Y->t);
     return true;
   }
