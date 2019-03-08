@@ -94,15 +94,15 @@ class CAFFE2_API OperatorBase : public Observable<OperatorBase> {
   inline vector<T> GetRepeatedArgument(
       const string& name,
       const vector<T>& default_value = {}) const {
-    if (isLegacyOperator()) {
+    //if (isLegacyOperator()) {
       CAFFE_ENFORCE(operator_def_, "operator_def was null!");
       return ArgumentHelper::GetRepeatedArgument<OperatorDef, T>(
           *operator_def_, name, default_value);
-    }
-    auto index = getFunctionSchema().argumentIndexWithName(name);
-    CAFFE_ENFORCE(index.has_value(), "Couldn't get index for argument!", name);
-    const auto& value = ivalue_inputs_[index.value()];
-    return GetVectorFromIValueList<T>(value);
+    //}
+    //auto index = getFunctionSchema().argumentIndexWithName(name);
+    //CAFFE_ENFORCE(index.has_value(), "Couldn't get index for argument!", name);
+    //const auto& value = ivalue_inputs_[index.value()];
+    //return GetVectorFromIValueList<T>(value);
   }
 
   // Get the inputs and outputs as specific types.

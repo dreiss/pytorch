@@ -10,9 +10,6 @@ REGISTER_CPU_OPERATOR(GivenTensorBoolFill, GivenTensorFillOp<bool, CPUContext>);
 REGISTER_CPU_OPERATOR(
     GivenTensorSInt16Fill,
     GivenTensorFillOp<int16_t, CPUContext>);
-REGISTER_CPU_OPERATOR(
-    GivenTensorUInt16Fill,
-    GivenTensorFillOp<uint16_t, CPUContext>);
 REGISTER_CPU_OPERATOR(GivenTensorIntFill, GivenTensorFillOp<int, CPUContext>);
 REGISTER_CPU_OPERATOR(
     GivenTensorInt64Fill,

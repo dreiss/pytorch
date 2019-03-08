@@ -34,9 +34,6 @@ class GivenTensorFillOp final : public FillerOp<Context> {
         case TensorProto_DataType_BOOL:
           ExtractValues<bool>();
           break;
-        case TensorProto_DataType_UINT16:
-          ExtractValues<uint16_t>();
-          break;
         case TensorProto_DataType_INT16:
           ExtractValues<int16_t>();
           break;

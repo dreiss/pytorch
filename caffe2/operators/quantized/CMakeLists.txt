@@ -1,6 +1,11 @@
 # ---[ CPU files only
 list(APPEND Caffe2_CPU_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/init_qnnpack.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/int8_aabb_roi_align_op.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/int8_aabb_roi_keypoints_op.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/int8_aabb_roi_nms_op.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/int8_aabb_roi_proposals_op.cc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/int8_aabb_roi_transform_op.cc"
   "${CMAKE_CURRENT_SOURCE_DIR}/int8_add_op.cc"
   "${CMAKE_CURRENT_SOURCE_DIR}/int8_average_pool_op.cc"
   "${CMAKE_CURRENT_SOURCE_DIR}/int8_channel_shuffle_op.cc"
