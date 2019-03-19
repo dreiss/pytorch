@@ -49,6 +49,15 @@ bool AABBRoINMSOp<CPUContext>::RunOnDevice() {
   vector<int> total_keep_per_batch(batch_size);
   const float* scores_ptr = input_scores_tensor.data<float>();
   const float* boxes_ptr = input_boxes_tensor.data<float>();
+  Tensor adjusted_scores_tensor(input_scores_tensor.GetDevice());
+  float* scores_adjust_ptr = nullptr;
+
+  if (soft_nms_method_ != SOFT_NMS_NONE) {
+    adjusted_scores_tensor.CopyFrom(input_scores_tensor);
+    scores_adjust_ptr = adjusted_scores_tensor.data<float>();
+    scores_ptr = scores_adjust_ptr;
+  }
+
   int roi_start = 0;
   for (int b = 0; b < batch_size; ++b) {
     int num_boxes = batch_splits_data[b];
@@ -58,26 +67,31 @@ bool AABBRoINMSOp<CPUContext>::RunOnDevice() {
     // skip class_idx = 0, because it's the background class
     int total_keep_count = 0;
     for (int class_idx = 1; class_idx < num_classes; class_idx++) {
+      int best_score_pos = -1;
+      float best_score = -1;
       std::vector<int> indices;
       for (int i = 0; i < num_boxes; i++) {
-        if (scores_ptr[i * num_classes + class_idx] > min_score_) {
+        float score = scores_ptr[i * num_classes + class_idx];
+        if (score > min_score_) {
+          if (score > best_score) {
+            best_score = score;
+            best_score_pos = indices.size();
+          }
           indices.push_back(i);
         }
       }
-      std::sort(
-          indices.begin(),
-          indices.end(),
-          [scores_ptr, num_classes, class_idx](int lhs, int rhs) {
-            return scores_ptr[lhs * num_classes + class_idx] >
-                scores_ptr[rhs * num_classes + class_idx];
-          });
       const int max_post_nms_proposals =
           max_objects_ > 0 ? max_objects_ : num_boxes;
       std::vector<int>& keep = keeps[class_idx];
       while (indices.size() > 0 && keep.size() < max_post_nms_proposals) {
-        /* get the highest scored remaining proposal */
+        DCHECK_GE(best_score_pos, 0);
+        DCHECK_LT(best_score_pos, indices.size());
+        /* Swap the highest-scored remaining proposal into position 0 */
+        std::swap(indices[0], indices[best_score_pos]);
         const int p = indices[0];
         keep.push_back(p);
+        best_score_pos = -1;
+        best_score = -1;
 
         const float p_x1 = boxes_ptr[(p * num_classes + class_idx) * 4 + 0];
         const float p_y1 = boxes_ptr[(p * num_classes + class_idx) * 4 + 1];
@@ -88,6 +102,7 @@ bool AABBRoINMSOp<CPUContext>::RunOnDevice() {
         const float p_area = p_width * p_height;
 
         std::vector<int> new_indices;
+        /* Compare to all other remaining proposals */
         for (size_t i = 1; i < indices.size(); i++) {
           const int idx = indices[i];
           const float i_x1 = boxes_ptr[(idx * num_classes + class_idx) * 4 + 0];
@@ -114,7 +129,30 @@ bool AABBRoINMSOp<CPUContext>::RunOnDevice() {
           const float union_area = i_area + p_area - intersection_area;
 
           if (intersection_area <= max_iou_ * union_area) {
+            float score = scores_ptr[idx * num_classes + class_idx];
+            if (score > best_score) {
+              best_score = score;
+              best_score_pos = new_indices.size();
+            }
             new_indices.push_back(idx);
+          } else if (soft_nms_method_ != SOFT_NMS_NONE) {
+            float score = scores_ptr[idx * num_classes + class_idx];
+            if (soft_nms_method_ == SOFT_NMS_LINEAR) {
+              score *= 1 - intersection_area / union_area;
+            } else if (soft_nms_method_ == SOFT_NMS_GAUSSIAN) {
+              float iou = intersection_area / union_area;
+              score = std::exp(-1.0 * iou * iou / soft_nms_sigma_);
+            } else {
+              CAFFE_THROW("Unknown soft nms method ", soft_nms_method_);
+            }
+            scores_adjust_ptr[idx * num_classes + class_idx] = score;
+            if (score >= soft_nms_min_score_) {
+              if (score > best_score) {
+                best_score = score;
+                best_score_pos = new_indices.size();
+              }
+              new_indices.push_back(idx);
+            }
           }
         }
         indices = std::move(new_indices);
