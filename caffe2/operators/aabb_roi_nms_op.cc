@@ -135,13 +135,21 @@ bool AABBRoINMSOp<CPUContext>::RunOnDevice() {
               best_score_pos = new_indices.size();
             }
             new_indices.push_back(idx);
+
+            // Gaussian soft NMS needs to update the score even when IoU < max.
+            if (soft_nms_method_ == SOFT_NMS_GAUSSIAN) {
+              float iou = intersection_area / union_area;
+              score *= std::exp(-1.0 * iou * iou / soft_nms_sigma_);
+              scores_adjust_ptr[idx * num_classes + class_idx] = score;
+            }
+
           } else if (soft_nms_method_ != SOFT_NMS_NONE) {
             float score = scores_ptr[idx * num_classes + class_idx];
             if (soft_nms_method_ == SOFT_NMS_LINEAR) {
               score *= 1 - intersection_area / union_area;
             } else if (soft_nms_method_ == SOFT_NMS_GAUSSIAN) {
               float iou = intersection_area / union_area;
-              score = std::exp(-1.0 * iou * iou / soft_nms_sigma_);
+              score *= std::exp(-1.0 * iou * iou / soft_nms_sigma_);
             } else {
               CAFFE_THROW("Unknown soft nms method ", soft_nms_method_);
             }
