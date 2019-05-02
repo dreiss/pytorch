@@ -18,19 +18,44 @@ class Int8AABBRoINMSOp final : public Operator<Context> {
         min_score_(this->template GetSingleArgument<float>("min_score", 0.05)),
         max_iou_(this->template GetSingleArgument<float>("max_iou", 0.3)),
         max_objects_(
-            this->template GetSingleArgument<int>("max_objects", 100)) {}
+            this->template GetSingleArgument<int>("max_objects", 100)),
+        soft_nms_method_(GetSoftNmsMethod(this->template GetSingleArgument<std::string>("soft_nms_method", "none"))),
+        soft_nms_sigma_(this->template GetSingleArgument<float>("soft_nms_sigma", 0.5)),
+        soft_nms_min_score_(this->template GetSingleArgument<float>("soft_nms_min_score", 0))
+  {}
 
   ~Int8AABBRoINMSOp() {}
 
   bool RunOnDevice() override;
 
  protected:
+  static const int SOFT_NMS_NONE = 0;
+  static const int SOFT_NMS_LINEAR = 1;
+  static const int SOFT_NMS_GAUSSIAN = 2;
+  static int GetSoftNmsMethod(const std::string& name) {
+    if (name == "none") {
+      return SOFT_NMS_NONE;
+    }
+    if (name == "linear") {
+      return SOFT_NMS_LINEAR;
+    }
+    if (name == "gaussian") {
+      return SOFT_NMS_GAUSSIAN;
+    }
+    CAFFE_THROW("Unexpected soft_nms_method ", name);
+    return -1;
+  }
+
   /* Min score for output bounding boxes */
   float min_score_ = 0.05;
   /* Max allowed IoU between bounding boxes of the same class */
   float max_iou_ = 0.3;
   /* Max number of detected objects per image */
   int max_objects_ = 100;
+
+  int soft_nms_method_;
+  float soft_nms_sigma_;
+  float soft_nms_min_score_;
 };
 
 } // namespace caffe2
