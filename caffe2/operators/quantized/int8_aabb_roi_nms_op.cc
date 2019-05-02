@@ -154,7 +154,7 @@ bool Int8AABBRoINMSOp<CPUContext>::RunOnDevice() {
             }
 
           } else if (soft_nms_method_ != SOFT_NMS_NONE) {
-            float score = scores_ptr[idx * num_classes + class_idx];
+            float score = scores_scale * (int32_t(scores_ptr[idx * num_classes + class_idx]) - scores_zero_point);
             if (soft_nms_method_ == SOFT_NMS_LINEAR) {
               score *= 1 - intersection_area / union_area;
             } else if (soft_nms_method_ == SOFT_NMS_GAUSSIAN) {
