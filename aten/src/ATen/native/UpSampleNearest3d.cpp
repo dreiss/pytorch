@@ -9,10 +9,13 @@ namespace {
 static void upsample_nearest3d_out_cpu_template(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 3,
       "It is expected output_size equals to 3, but got size ",
@@ -50,11 +53,14 @@ static void upsample_nearest3d_out_cpu_template(
 static void upsample_nearest3d_backward_out_cpu_template(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     IntArrayRef input_size,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 3,
       "It is expected output_size equals to 3, but got size ",
@@ -98,7 +104,7 @@ static void upsample_nearest3d_backward_out_cpu_template(
 Tensor& upsample_nearest3d_out_cpu(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
@@ -108,7 +114,7 @@ Tensor& upsample_nearest3d_out_cpu(
 
 Tensor upsample_nearest3d_cpu(
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
@@ -120,7 +126,7 @@ Tensor upsample_nearest3d_cpu(
 Tensor& upsample_nearest3d_backward_out_cpu(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,
@@ -132,7 +138,7 @@ Tensor& upsample_nearest3d_backward_out_cpu(
 
 Tensor upsample_nearest3d_backward_cpu(
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales_d,
     c10::optional<double> scales_h,

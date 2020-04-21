@@ -9,8 +9,11 @@ namespace {
 static void upsample_nearest1d_out_cpu_template(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     c10::optional<double> scales) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 1,
       "It is expected output_size equals to 1, but got size ",
@@ -39,9 +42,12 @@ static void upsample_nearest1d_out_cpu_template(
 static void upsample_nearest1d_backward_out_cpu_template(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     IntArrayRef input_size,
     c10::optional<double> scales) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 1,
       "It is expected output_size equals to 1, but got size ",
@@ -76,7 +82,7 @@ static void upsample_nearest1d_backward_out_cpu_template(
 Tensor& upsample_nearest1d_out_cpu(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales) {
   upsample_nearest1d_out_cpu_template(output, input, output_size, scales);
   return output;
@@ -84,7 +90,7 @@ Tensor& upsample_nearest1d_out_cpu(
 
 Tensor upsample_nearest1d_cpu(
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales) {
   auto output = at::empty({0}, input.options());
   upsample_nearest1d_out_cpu_template(output, input, output_size, scales);
@@ -94,7 +100,7 @@ Tensor upsample_nearest1d_cpu(
 Tensor& upsample_nearest1d_backward_out_cpu(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales) {
   upsample_nearest1d_backward_out_cpu_template(
@@ -104,7 +110,7 @@ Tensor& upsample_nearest1d_backward_out_cpu(
 
 Tensor upsample_nearest1d_backward_cpu(
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales) {
   auto grad_input = at::zeros(input_size, grad_output.options());

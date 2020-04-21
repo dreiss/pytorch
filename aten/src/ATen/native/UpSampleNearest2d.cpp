@@ -9,9 +9,12 @@ namespace {
 static void upsample_nearest2d_out_cpu_template(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 2,
       "It is expected output_size equals to 2, but got size ",
@@ -44,10 +47,13 @@ static void upsample_nearest2d_out_cpu_template(
 static void upsample_nearest2d_backward_out_cpu_template(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     IntArrayRef input_size,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 2,
       "It is expected output_size equals to 2, but got size ",
@@ -58,8 +64,8 @@ static void upsample_nearest2d_backward_out_cpu_template(
       "It is expected input_size equals to 4, but got size ",
       input_size.size());
 
-  int64_t output_height = output_size[0];
-  int64_t output_width = output_size[1];
+  int64_t output_height = output_size.at(0);
+  int64_t output_width = output_size.at(1);
 
   int64_t nbatch = input_size[0];
   int64_t channels = input_size[1];
@@ -86,7 +92,7 @@ static void upsample_nearest2d_backward_out_cpu_template(
 Tensor& upsample_nearest2d_out_cpu(
     Tensor& output,
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
   upsample_nearest2d_out_cpu_template(output, input, output_size, scales_h, scales_w);
@@ -95,7 +101,7 @@ Tensor& upsample_nearest2d_out_cpu(
 
 Tensor upsample_nearest2d_cpu(
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
   auto output = at::empty({0}, input.options());
@@ -106,7 +112,7 @@ Tensor upsample_nearest2d_cpu(
 Tensor& upsample_nearest2d_backward_out_cpu(
     Tensor& grad_input,
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
@@ -117,7 +123,7 @@ Tensor& upsample_nearest2d_backward_out_cpu(
 
 Tensor upsample_nearest2d_backward_cpu(
     const Tensor& grad_output,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size,
     IntArrayRef input_size,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {

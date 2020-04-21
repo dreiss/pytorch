@@ -97,9 +97,12 @@ static void upsample_nearest2d_out_frame_nhwc(
 
 Tensor quantized_upsample_nearest2d_cpu(
     const Tensor& input,
-    IntArrayRef output_size,
+    c10::optional<IntArrayRef> output_size_opt,
     c10::optional<double> scales_h,
     c10::optional<double> scales_w) {
+  TORCH_CHECK(output_size_opt.has_value(), "output_size must be specified.");
+  IntArrayRef output_size = *output_size_opt;
+
   TORCH_CHECK(
       output_size.size() == 2,
       "It is expected output_size equals to 2, but got size ",
