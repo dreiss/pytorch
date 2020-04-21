@@ -876,6 +876,13 @@ inline optional<T> IValue::toOptional() {
   return this->to<T>();
 }
 
+inline OptionalIntArrayRef IValue::toOptionalIntArrayRef() {
+  if (this->isNone()) {
+    return {};
+  }
+  return this->toIntVector();
+}
+
 inline bool IValue::isCustomClass() const {
   return torch::isCustomClass(*this);
 }

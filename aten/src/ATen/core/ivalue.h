@@ -38,6 +38,20 @@ struct Object;
 struct PyObjectHolder;
 }
 
+namespace {
+struct OptionalIntArrayRef {
+  OptionalIntArrayRef() {};
+  OptionalIntArrayRef(std::vector<int64_t> val) : list(std::move(val)) {}
+  c10::optional<std::vector<int64_t>> list;
+  operator c10::optional<c10::IntArrayRef>() {
+    if (!list) {
+      return {};
+    }
+    return *list;
+  }
+};
+}
+
 // IValue is the generic tagged union used by the interpreter to hold
 // all value types.
 // It is a 16-byte object with an 8-byte payload and an 8-byte tag.
@@ -559,6 +573,8 @@ struct CAFFE2_API IValue final {
   // ToOptional: convert a IValue to the Optional obj that accepts both T and None
   template<typename T>
   optional<T> toOptional();
+
+  OptionalIntArrayRef toOptionalIntArrayRef();
 
   /// @private [doxygen private]
   /// this is a shallow comparison of two IValues to test the object identity

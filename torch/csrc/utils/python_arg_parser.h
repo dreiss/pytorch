@@ -75,6 +75,20 @@
 
 namespace torch {
 
+namespace {
+struct OptionalIntList {
+  OptionalIntList() {};
+  OptionalIntList(std::vector<int64_t> val) : list(val) {}
+  c10::optional<std::vector<int64_t>> list;
+  operator c10::optional<c10::IntArrayRef>() {
+    if (!list) {
+      return {};
+    }
+    return *list;
+  }
+};
+}
+
 enum class ParameterType {
   TENSOR, SCALAR, INT64, DOUBLE, COMPLEX, TENSOR_LIST, INT_LIST, GENERATOR,
   BOOL, STORAGE, PYOBJECT, SCALARTYPE, LAYOUT, MEMORY_FORMAT, DEVICE, STRING,
@@ -153,6 +167,7 @@ struct PythonArgs {
   template<int N>
   inline std::array<at::Tensor, N> tensorlist_n(int i);
   inline std::vector<int64_t> intlist(int i);
+  inline OptionalIntList intlistOptional(int i);
   inline std::vector<int64_t> intlistWithDefault(int i, std::vector<int64_t> default_intlist);
   inline c10::optional<at::Generator> generator(int i);
   inline at::Storage storage(int i);
@@ -335,6 +350,13 @@ inline std::vector<int64_t> PythonArgs::intlistWithDefault(int i, std::vector<in
     }
   }
   return res;
+}
+
+inline OptionalIntList PythonArgs::intlistOptional(int i) {
+  if (!args[i]) {
+    return {};
+  }
+  return intlist(i);
 }
 
 inline at::ScalarType PythonArgs::scalartypeWithDefault(int i, at::ScalarType default_scalartype) {
